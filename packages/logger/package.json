@@ -14,8 +14,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/config": "workspace:*",
     "pino": "^9.6.0"
   },
+
 
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",

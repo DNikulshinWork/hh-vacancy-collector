@@ -1,9 +1,10 @@
 import pino from 'pino';
+import { loadEnv } from '@repo/config';
 
 export function createLogger(name: string) {
-  const level = process.env['LOG_LEVEL'] ?? 'info';
+  const env = loadEnv();
   return pino({
     name,
-    level,
+    level: env.LOG_LEVEL,
   });
 }
