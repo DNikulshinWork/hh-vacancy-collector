@@ -1,12 +1,19 @@
 import base from './base.js';
+import nextPlugin from '@next/eslint-plugin-next';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   ...base,
   {
+    plugins: {
+      '@next/next': nextPlugin,
+      'react-hooks': reactHooks,
+    },
     rules: {
-      // next/core-web-vitals equivalents for flat config baseline
-      'react-hooks/rules-of-hooks': 'off',
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      ...reactHooks.configs.recommended.rules,
     },
   },
 ];

@@ -6,7 +6,7 @@
     "dev": "next dev -p ${WEB_PORT:-3000}",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:unit": "echo 'no unit tests'"
   },
@@ -18,7 +18,9 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
+
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",

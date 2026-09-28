@@ -9,7 +9,10 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/logger/package.json ./packages/logger/
 COPY tooling/typescript/package.json ./tooling/typescript/
+COPY tooling/eslint/package.json ./tooling/eslint/
+COPY tooling/prettier/package.json ./tooling/prettier/
 RUN pnpm install --frozen-lockfile --filter @repo/api...
+
 
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
