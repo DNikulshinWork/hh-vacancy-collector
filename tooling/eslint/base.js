@@ -12,8 +12,7 @@ export default [
     },
     settings: {
       'import/resolver': {
-        typescript: true,
-        node: true,
+        node: { extensions: [".js", ".jsx", ".ts", ".tsx"] },
       },
     },
     rules: {
@@ -52,6 +51,12 @@ export default [
     },
   },
   {
-    ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/coverage/**'],
+    ignores: [
+      '**/dist/**',
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/*.timestamp-*',
+    ],
   },
 ];
