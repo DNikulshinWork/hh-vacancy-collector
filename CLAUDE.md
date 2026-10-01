@@ -25,6 +25,8 @@ AI-скоринг — задел (поле rawPayload + отдельный бу�
 ## Сделано
 - Sprint 0: скелет монорепо (pnpm + turbo), tooling, packages/config|contracts|logger,
   apps/api|worker|web, compose (postgres+redis), CI, Husky, CLAUDE.md.
+- Sprint 0 final-fix: Dockerfile'ы переведены на full-install без pnpm --filter,
+  добавлен .dockerignore, подтверждены docker build x3; правки §11 применены.
 
 ## Осталось
 - Sprint 1: /specs/domain.md, /specs/api.md, Prisma-схема Vacancy+FilterConfig+ScraperConfig,

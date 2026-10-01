@@ -12,7 +12,8 @@ export default [
     },
     settings: {
       'import/resolver': {
-        node: { extensions: [".js", ".jsx", ".ts", ".tsx"] },
+        typescript: true,
+        node: true,
       },
     },
     rules: {

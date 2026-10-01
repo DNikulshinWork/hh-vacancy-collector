@@ -372,3 +372,60 @@ Prisma, Playwright, BullMQ, реальные DTO, Swagger, shadcn, worker scrape
 Известное ограничение Sprint 0. Пакеты @repo/config, @repo/contracts, @repo/logger экспортируются из ./src/index.ts без build-шага. Это работает в dev (tsx) и в turbo run typecheck/lint/test:unit, но не работает в prod-контейнере при node dist/.... Исправляется в Sprint 1: каждому packages добавить реальный build и переключить exports на ./dist/index.js с типами.
 
 Hotfix (fix/sprint-0-hotfix): Dockerfiles COPY tooling/eslint и tooling/prettier; test:unit ограничен tests/unit; eslint next = core-web-vitals; logger через loadEnv; .npmrc и defaults DATABASE_URL/REDIS_URL приняты спекой.
+
+---
+
+## 11. Final Fix (fix/sprint-0-final)
+
+### 11.1. .npmrc
+```ini
+registry=https://registry.npmjs.org/
+node-linker=hoisted
+package-import-method=copy
+symlink=false
+```
+Обоснование: ESLint установлен в root devDependencies, lint запускается из каждого workspace-пакета. Без hoisted и symlink=false резолв зависимостей и плагинов нестабилен.
+
+### 11.2. tooling/eslint/base.js
+```javascript
+settings: {
+  'import/resolver': {
+    typescript: true,
+    node: true,
+  },
+},
+```
+
+### 11.3. lint-staged (package.json)
+```json
+"lint-staged": {
+  "*.{ts,tsx}": [
+    "eslint --fix"
+  ],
+  "*.{json,md,yml,yaml}": [
+    "prettier --write"
+  ]
+}
+```
+
+### 11.4. Dockerfile'ы (apps/api, apps/worker, apps/web)
+Переведены на full-install без --filter:
+```dockerfile
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm turbo run build --filter=@repo/<app>...
+```
+
+### 11.5. .dockerignore
+Создан в корне репозитория:
+```
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+.git
+.husky
+specs
+*.log
+.env
+```
