@@ -1,0 +1,9 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+.git
+.husky
+specs
+*.log
+.env

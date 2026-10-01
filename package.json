@@ -27,7 +27,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --config ./tooling/eslint/base.js --fix"
+      "eslint --fix"
     ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
