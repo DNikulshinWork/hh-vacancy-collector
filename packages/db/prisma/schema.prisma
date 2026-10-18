@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Employment {
+  full
+  part
+  project
+  volunteer
+  probation
+}
+
+enum Schedule {
+  fullDay
+  shift
+  flexible
+  remote
+  flyInFlyOut
+}
+
+enum Experience {
+  noExperience
+  between1And3
+  between3And6
+  moreThan6
+}
+
+enum VacancyStatus {
+  new
+  viewed
+  exported
+  archived
+  skipped
+}
+
+enum OrderBy {
+  publication_time
+  relevance
+  salary_desc
+  salary_asc
+}
+
+enum SalaryTax {
+  net
+  gross
+}
+
+enum CaptchaAction {
+  pause
+  abort
+  retryLater
+}
+
+enum ProxyRotation {
+  perRequest
+  perSession
+}
+
+model Vacancy {
+  id            String        @id @default(uuid()) @db.Uuid
+  hhId          String        @unique
+  title         String
+  company       String
+  url           String
+  salaryFrom    Int?
+  salaryTo      Int?
+  currency      String?
+  salaryTax     SalaryTax?
+  employment    Employment?
+  schedule      Schedule?
+  experience    Experience?
+  publishedAt   DateTime
+  descriptionMd String?       @db.Text
+  rawPayload    Json
+  status        VacancyStatus @default(new)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model FilterConfig {
+  id                         String       @id @default(uuid()) @db.Uuid
+  name                       String
+  isActive                   Boolean      @default(false)
+  titleKeywordsInclude       String[]     @default([])
+  descriptionKeywordsInclude String[]     @default([])
+  titleKeywordsExclude       String[]     @default([])
+  descriptionKeywordsExclude String[]     @default([])
+  employment                 Employment[] @default([])
+  schedule                   Schedule[]   @default([])
+  experience                 Experience[] @default([])
+  area                       Int[]        @default([])
+  searchPeriodDays           Int
+  orderBy                    OrderBy      @default(publication_time)
+  createdAt                  DateTime     @default(now())
+  updatedAt                  DateTime     @updatedAt
+
+  @@index([isActive])
+}
+
+model ScraperConfig {
+  id                  String         @id @default(uuid()) @db.Uuid
+  userAgent           String
+  headless            Boolean        @default(true)
+  userDataDir         String         @default("./.scraper-profile")
+  viewportWidth       Int            @default(1920)
+  viewportHeight      Int            @default(1080)
+  locale              String         @default("ru-RU")
+  maxConcurrency      Int            @default(1)
+  pageTimeoutMs       Int            @default(30000)
+  onCaptcha           CaptchaAction  @default(retryLater)
+  captchaRetryDelayMs Int            @default(900000)
+  proxyUrl            String?
+  proxyRotation       ProxyRotation?
+  rateLimit           Json
+  enrichment          Json
+  navigationRetry     Json
+  selectors           Json
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
