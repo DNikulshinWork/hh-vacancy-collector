@@ -13,7 +13,8 @@
     "typecheck": "turbo run typecheck",
     "test:unit": "turbo run test:unit",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yml,yaml}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "harness": "pnpm --filter @repo/harness exec tsx src/index.ts --"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -27,7 +28,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix"
+      "eslint --flag v10_config_lookup_from_file --fix"
     ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
