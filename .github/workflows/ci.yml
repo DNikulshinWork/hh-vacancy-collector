@@ -54,6 +54,11 @@ jobs:
           DATABASE_URL: postgresql://hhvc:hhvc@localhost:5432/hhvc
           REDIS_URL: redis://localhost:6379
 
+      - name: Push Database Schema
+        run: pnpm --filter @repo/db db:push
+        env:
+          DATABASE_URL: postgresql://hhvc:hhvc@localhost:5432/hhvc
+
       - name: E2E (api + worker)
         run: pnpm turbo run test:e2e
         env:
