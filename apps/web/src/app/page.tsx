@@ -1,8 +1,20 @@
-export default function HomePage() {
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function RootPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold">hh-vacancy-collector</h1>
-      <p className="mt-4 text-gray-600">Sprint 0 — скелет</p>
-    </main>
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="text-xs text-gray-500 animate-pulse font-medium">
+        Загрузка приложения...
+      </div>
+    </div>
   );
 }
