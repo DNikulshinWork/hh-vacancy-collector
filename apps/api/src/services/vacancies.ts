@@ -1,5 +1,4 @@
-import { prisma } from '@repo/db';
-import type { Prisma } from '@prisma/client';
+import { prisma, type Prisma } from '@repo/db';
 
 export interface VacancyListParams {
   page: number;
