@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vacancy {
+  id           String   @id @default(uuid())
+  hhId         String   @unique
+  title        String
+  company      String
+  salaryMin    Int?
+  salaryMax    Int?
+  currency     String?
+  location     String
+  experience   String
+  description  String
+  url          String
+  publishedAt  DateTime
+  rawPayload   Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model FilterConfig {
+  id          String        @id @default(uuid())
+  name        String
+  query       String
+  location    String?
+  experience  String?
+  salaryMin   Int?
+  salaryMax   Int?
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  scrapeRuns  ScrapeRun[]
+}
+
+model ScraperConfig {
+  id              String        @id @default(uuid())
+  name            String
+  selectors       Json
+  timeouts        Json
+  paginationLimits Json
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  scrapeRuns      ScrapeRun[]
+}
+
+model ScrapeRun {
+  id               String          @id @default(uuid())
+  filterConfigId   String
+  filterConfig     FilterConfig    @relation(fields: [filterConfigId], references: [id])
+  scraperConfigId  String
+  scraperConfig    ScraperConfig   @relation(fields: [scraperConfigId], references: [id])
+  status           ScrapeRunStatus
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  resultCount      Int             @default(0)
+  error            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+enum ScrapeRunStatus {
+  pending
+  running
+  completed
+  failed
+}

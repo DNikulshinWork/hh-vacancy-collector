@@ -27,11 +27,13 @@ AI-скоринг — задел (поле rawPayload + отдельный бу�
   apps/api|worker|web, compose (postgres+redis), CI, Husky, CLAUDE.md.
 - Sprint 0 final-fix: Dockerfile'ы переведены на full-install без pnpm --filter,
   добавлен .dockerignore, подтверждены docker build x3; правки §11 применены.
+- Sprint 1: packages/db (Prisma schema: Vacancy, FilterConfig, ScraperConfig, ScrapeRun),
+  contracts (DTO + zod-схемы), REST stubs (/vacancies, /filter-configs, /scrape-runs)
+  с валидацией Zod и unit/e2e тестами, глобальный error handler (ZodError → 400).
 
 ## Осталось
-- Sprint 1: /specs/domain.md, /specs/api.md, Prisma-схема Vacancy+FilterConfig+ScraperConfig,
-  contracts, Swagger, заглушки эндпоинтов + unit/integration тесты.
-- Sprint 2: Playwright-скрейпер + BullMQ worker, dedupe, e2e на цикл сбор→сохранение (фикстуры).
+- Sprint 2: Playwright-скрейпер + BullMQ worker, dedupe, реализация CRUD
+  (замена stubs на реальную работу с Prisma/BullMQ), e2e на цикл сбор→сохранение (фикстуры).
 - Sprint 3: web UI (список, фильтры, статусы, экспорт).
 - Sprint 4: GHCR-образы, деплой на VPS, поддомен, smoke-тест.
 
