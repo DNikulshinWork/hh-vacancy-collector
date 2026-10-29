@@ -37,7 +37,7 @@ export async function runBrowserScrape(
       const html = await fetchPage();
       collected.push(...parseVacanciesHtml(html, selectors));
     }
-    return { vacancies: collected, pagesProcessed: paginationLimits.maxPages };
+    return { vacancies: collected, pagesProcessed: Math.min(paginationLimits.maxPages, 1) };
   }
 
   const launch = opts.deps?.launch ?? defaultLaunch;
