@@ -10,6 +10,9 @@ RUN pnpm turbo run build --filter=@repo/worker...
 FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+# Chromium для Playwright (системный, PLAYWRIGHT_BROWSERS_PATH=0)
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
+ENV PLAYWRIGHT_BROWSERS_PATH=0
 COPY --from=build /app/apps/worker/dist ./apps/worker/dist
 COPY --from=build /app/apps/worker/package.json ./apps/worker/package.json
 COPY --from=build /app/packages ./packages

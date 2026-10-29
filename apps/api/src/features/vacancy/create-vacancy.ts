@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { createVacancyBodySchema } from '@repo/contracts';
+import { createVacancy } from '../../services/vacancies.js';
 
 type Body = ReturnType<typeof createVacancyBodySchema.parse>;
 
@@ -9,8 +10,10 @@ export async function createVacancyHandler(
 ): Promise<FastifyReply> {
   const body = createVacancyBodySchema.parse(request.body ?? {});
 
-  // TODO(Sprint 2): реализовать запись через Prisma
-  void body;
+  const vacancy = await createVacancy({
+    ...body,
+    rawPayload: body.rawPayload ?? {},
+  });
 
-  return reply.code(201).send({ id: '' });
+  return reply.code(201).send({ id: vacancy.id });
 }

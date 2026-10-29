@@ -1,9 +1,10 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { listFilterConfigs } from '../../services/filter-configs.js';
 
 export async function listFilterConfigsHandler(
   _request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<FastifyReply> {
-  // TODO(Sprint 2): реализовать чтение из Prisma
-  return reply.code(200).send({ filterConfigs: [] });
+  const items = await listFilterConfigs();
+  return reply.code(200).send({ filterConfigs: items });
 }

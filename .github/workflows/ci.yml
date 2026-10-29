@@ -9,6 +9,29 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hhvc
+          POSTGRES_PASSWORD: hhvc
+          POSTGRES_DB: hhvc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hhvc -d hhvc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -24,6 +47,12 @@ jobs:
 
       - name: Lint / Typecheck / Unit / Build
         run: pnpm turbo run lint typecheck test:unit build
+        env:
+          DATABASE_URL: postgresql://hhvc:hhvc@localhost:5432/hhvc
+          REDIS_URL: redis://localhost:6379
+
+      - name: E2E (api + worker)
+        run: pnpm turbo run test:e2e
         env:
           DATABASE_URL: postgresql://hhvc:hhvc@localhost:5432/hhvc
           REDIS_URL: redis://localhost:6379

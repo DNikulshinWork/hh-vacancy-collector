@@ -30,10 +30,10 @@ AI-скоринг — задел (поле rawPayload + отдельный бу�
 - Sprint 1: packages/db (Prisma schema: Vacancy, FilterConfig, ScraperConfig, ScrapeRun),
   contracts (DTO + zod-схемы), REST stubs (/vacancies, /filter-configs, /scrape-runs)
   с валидацией Zod и unit/e2e тестами, глобальный error handler (ZodError → 400).
+- Sprint 2: Playwright scraper, BullMQ worker, dedupe, CRUD, e2e тесты,
+  схемы и API endpoints, fixtures, unit tests, CI workflow с service containers.
 
 ## Осталось
-- Sprint 2: Playwright-скрейпер + BullMQ worker, dedupe, реализация CRUD
-  (замена stubs на реальную работу с Prisma/BullMQ), e2e на цикл сбор→сохранение (фикстуры).
 - Sprint 3: web UI (список, фильтры, статусы, экспорт).
 - Sprint 4: GHCR-образы, деплой на VPS, поддомен, smoke-тест.
 

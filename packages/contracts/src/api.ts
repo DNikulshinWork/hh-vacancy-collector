@@ -62,3 +62,30 @@ export const createScrapeRunBodySchema = z.object({
 });
 
 export type CreateScrapeRunBody = z.infer<typeof createScrapeRunBodySchema>;
+
+export const listScrapeRunsQuerySchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+});
+
+export type ListScrapeRunsQuery = z.infer<typeof listScrapeRunsQuerySchema>;
+
+// ScraperConfig endpoints
+export const createScraperConfigBodySchema = z.object({
+  name: z.string(),
+  selectors: z.record(z.string(), z.string()),
+  timeouts: z
+    .object({
+      navigation: z.number().default(30000),
+      waitForSelector: z.number().default(15000),
+    })
+    .default({}),
+  paginationLimits: z
+    .object({
+      maxPages: z.number().min(1).default(5),
+      delayMs: z.number().min(0).default(1500),
+    })
+    .default({}),
+});
+
+export type CreateScraperConfigBody = z.infer<typeof createScraperConfigBodySchema>;

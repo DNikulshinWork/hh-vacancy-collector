@@ -13,6 +13,8 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   API_PORT: z.coerce.number().default(3001),
   WEB_PORT: z.coerce.number().default(3000),
+  SCRAPER_HEADLESS: z.coerce.boolean().default(true),
+  SCRAPER_CONCURRENCY: z.coerce.number().default(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

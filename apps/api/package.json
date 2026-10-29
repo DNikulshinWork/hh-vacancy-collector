@@ -17,6 +17,7 @@
     "@repo/contracts": "workspace:*",
     "@repo/db": "workspace:^",
     "@repo/logger": "workspace:*",
+    "@repo/queue": "workspace:^",
     "fastify": "^5.2.0"
   },
   "devDependencies": {

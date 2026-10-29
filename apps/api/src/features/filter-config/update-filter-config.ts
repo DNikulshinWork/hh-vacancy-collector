@@ -1,5 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { Prisma } from '@prisma/client';
 import { updateFilterConfigBodySchema } from '@repo/contracts';
+import { updateFilterConfig } from '../../services/filter-configs.js';
 
 type Body = ReturnType<typeof updateFilterConfigBodySchema.parse>;
 
@@ -9,9 +11,16 @@ export async function updateFilterConfigHandler(
 ): Promise<FastifyReply> {
   const body = updateFilterConfigBodySchema.parse(request.body ?? {});
 
-  // TODO(Sprint 2): реализовать обновление через Prisma
-  void request.params.id;
-  void body;
-
-  return reply.code(200).send({ id: request.params.id });
+  try {
+    const config = await updateFilterConfig(request.params.id, body);
+    if (!config) {
+      return reply.code(404).send({ message: 'filter config not found' });
+    }
+    return reply.code(200).send({ id: config.id });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      return reply.code(404).send({ message: 'filter config not found' });
+    }
+    throw err;
+  }
 }

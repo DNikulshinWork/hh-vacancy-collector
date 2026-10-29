@@ -8,17 +8,23 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:unit": "echo 'no unit tests'"
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "vitest run tests/e2e"
   },
   "dependencies": {
     "@repo/config": "workspace:*",
-    "@repo/logger": "workspace:*"
+    "@repo/db": "workspace:^",
+    "@repo/logger": "workspace:*",
+    "@repo/queue": "workspace:^",
+    "parse5": "^7.2.1",
+    "playwright": "^1.49.1"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "@repo/eslint-config": "workspace:*"
+    "vitest": "^2.1.8"
   }
 }
