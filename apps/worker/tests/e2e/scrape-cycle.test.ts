@@ -66,7 +66,6 @@ describe('scrape cycle (collect -> save)', () => {
       },
       browserDeps: {
         fetchPage: async () => {
-          console.log('fetchPage called');
           return readFileSync(fixturePath, 'utf-8');
         },
       },
