@@ -1,26 +1,18 @@
-# CLAUDE.md
+# hh-vacancy-collector
 
-## Контекст
-- Проект: hh-vacancy-collector
-- Спецификация: PROJECT_SPEC.md — источник истины. Что не описано — уточнять, не додумывать.
-- Архитектурный паттерн: ED Microservices Monorepo Pattern v1.0 (PNPM Workspaces + Turborepo).
-- Стек: Fastify + Prisma 7 + Postgres + Redis (BullMQ) + Playwright (scraper) + Next.js.
-- Workflow: SDD — /specs/<feature>.md → contracts → tests → реализация.
+Сбор вакансий hh.ru через Playwright, хранение в Postgres, REST API (Fastify), UI (Next.js).
 
-## Цель
-Сбор вакансий hh.ru через Playwright по конфигурируемым фильтрам.
-Хранение в Postgres. Отдача через Fastify REST. UI на Next.js.
-AI-скоринг — задел (поле rawPayload + отдельный будущий модуль), не MVP.
+## Структура
 
-## Решения
-- Источник данных: Playwright-скрейпинг (REST hh.ru недоступен для физлиц).
-- Очередь: BullMQ поверх Redis. Отдельный runtime-юнит apps/worker.
-- Фильтры и параметры скрейпинга — данные в БД (FilterConfig, ScraperConfig), не константы в коде.
-- Дедуп вакансий: unique hhId в Postgres + Redis SETNX как fast-path.
-- Структура: apps/ + packages/ + tooling/ + infrastructure/.
-  Внутри каждого app: src/{app,features,services,shared}/.
-- Cross-app импорты — только через @repo/contracts и @repo/db, не через исходники друг друга.
-- packages/* не зависят от apps/*.
+- `apps/api` — Fastify REST API
+- `apps/worker` — BullMQ worker и Playwright scraper
+- `apps/web` — Next.js UI
+- `packages/config` — env/config
+- `packages/contracts` — DTO и shared schemas
+- `packages/db` — Prisma schema/client
+- `packages/queue` — BullMQ wrapper
+- `infrastructure/compose` — docker-compose для dev
+- `specs/` — спецификации спринтов
 
 ## Сделано
 - Sprint 0: скелет монорепо (pnpm + turbo), tooling, packages/config|contracts|logger,
