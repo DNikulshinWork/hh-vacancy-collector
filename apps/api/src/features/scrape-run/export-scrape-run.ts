@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { prisma } from '@repo/db';
-import type { Prisma, Vacancy } from '@prisma/client';
+import { prisma, type Prisma, type Vacancy } from '@repo/db';
 import { getScrapeRun } from '../../services/scrape-runs.js';
 
 interface ExportParams {

@@ -45,6 +45,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm --filter @repo/db generate
+
       - name: Lint / Typecheck / Unit / Build
         run: pnpm turbo run lint typecheck test:unit build
         env:
