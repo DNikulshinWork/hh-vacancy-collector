@@ -203,7 +203,7 @@ API_PORT=
 WEB_PORT=
 ```
 
-.npmrc: registry=https://registry.npmjs.org/, node-linker=hoisted, package-import-method=copy, symlink=false. Обоснование: eslint установлен только в root devDependencies, а lint запускается из каждого workspace. hoisted + symlink=false обеспечивает корректный резолв без дублирования ESLint в каждом пакете.
+.npmrc: registry=https://registry.npmjs.org/, node-linker=hoisted, package-import-method=copy. Обоснование: eslint установлен только в root devDependencies, а lint запускается из каждого workspace. hoisted обеспечивает корректный резолв без дублирования ESLint в каждом пакете. `symlink=false` не использовать: он ломает резолв workspace-пакетов @repo/* при чистой установке.
 
 README.md: 10–15 строк — что это, как поставить (pnpm i), как поднять инфру (docker compose ... up -d), как запустить (pnpm dev), ссылка на PROJECT_SPEC.md и /specs.
 
@@ -382,9 +382,8 @@ Hotfix (fix/sprint-0-hotfix): Dockerfiles COPY tooling/eslint и tooling/prettie
 registry=https://registry.npmjs.org/
 node-linker=hoisted
 package-import-method=copy
-symlink=false
 ```
-Обоснование: ESLint установлен в root devDependencies, lint запускается из каждого workspace-пакета. Без hoisted и symlink=false резолв зависимостей и плагинов нестабилен.
+Обоснование: ESLint установлен в root devDependencies, lint запускается из каждого workspace-пакета. Без hoisted резолв зависимостей и плагинов нестабилен. `symlink=false` исключён, потому что ломает резолв workspace-пакетов @repo/* при чистой установке.
 
 ### 11.2. tooling/eslint/base.js
 ```javascript
