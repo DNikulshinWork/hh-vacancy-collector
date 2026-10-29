@@ -1,5 +1,4 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { Prisma } from '@prisma/client';
 import { updateFilterConfigBodySchema } from '@repo/contracts';
 import { updateFilterConfig } from '../../services/filter-configs.js';
 

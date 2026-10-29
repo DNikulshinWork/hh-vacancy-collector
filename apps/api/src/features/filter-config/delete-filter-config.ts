@@ -1,5 +1,4 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { Prisma } from '@prisma/client';
 import { deleteFilterConfig } from '../../services/filter-configs.js';
 
 export async function deleteFilterConfigHandler(
