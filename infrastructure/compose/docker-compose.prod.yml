@@ -1,0 +1,147 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hhvc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-hhvc}
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-hhvc} -d ${POSTGRES_DB:-hhvc}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: '3'
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redisdata_prod:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: '3'
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/dnikulshinwork/hh-vacancy-collector/api}:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    restart: always
+    environment:
+      NODE_ENV: production
+      API_PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hhvc}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-hhvc}
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3001/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: '5'
+
+  worker:
+    image: ${WORKER_IMAGE:-ghcr.io/dnikulshinwork/hh-vacancy-collector/worker}:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: apps/worker/Dockerfile
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hhvc}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-hhvc}
+      REDIS_URL: redis://redis:6379
+      SCRAPER_HEADLESS: 'true'
+      SCRAPER_CONCURRENCY: ${SCRAPER_CONCURRENCY:-2}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_HEALTH_PORT: 3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3002/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: '5'
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/dnikulshinwork/hh-vacancy-collector/web}:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3000/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 30m
+        max-file: '3'
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot_prod_etc:/etc/letsencrypt
+      - certbot_prod_www:/var/www/certbot
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 30m
+        max-file: '3'
+
+volumes:
+  pgdata_prod:
+  redisdata_prod:
+  certbot_prod_etc:
+  certbot_prod_www:

@@ -34,10 +34,26 @@ async function main(): Promise<void> {
   );
   worker.on('error', (err) => log.error({ err: err.message }, 'worker error'));
 
+  const healthPort = Number(process.env.WORKER_HEALTH_PORT || 3002);
+  const healthServer = (await import('node:http')).createServer((req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok', service: 'worker', uptime: process.uptime() }));
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+
+  healthServer.listen(healthPort, '0.0.0.0', () => {
+    log.info({ port: healthPort }, 'worker health server listening');
+  });
+
   log.info('worker listening');
 
   const shutdown = async (signal: string): Promise<void> => {
     log.info({ signal }, 'shutting down');
+    healthServer.close();
     await worker.close();
     await redis.quit();
     process.exit(0);
