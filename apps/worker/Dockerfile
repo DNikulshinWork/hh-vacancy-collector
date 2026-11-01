@@ -12,7 +12,7 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 # Chromium для Playwright (системный, PLAYWRIGHT_BROWSERS_PATH=0)
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont openssl
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 COPY --from=build /app ./
 EXPOSE 3002
