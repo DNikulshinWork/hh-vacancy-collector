@@ -14,10 +14,7 @@ ENV NODE_ENV=production
 # Chromium для Playwright (системный, PLAYWRIGHT_BROWSERS_PATH=0)
 RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
 ENV PLAYWRIGHT_BROWSERS_PATH=0
-COPY --from=build /app/apps/worker/dist ./apps/worker/dist
-COPY --from=build /app/apps/worker/package.json ./apps/worker/package.json
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app ./
 EXPOSE 3002
 HEALTHCHECK --interval=15s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3002/health || exit 1
