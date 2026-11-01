@@ -38,3 +38,19 @@ export function createScrapeWorker(
     concurrency,
   });
 }
+
+export async function pingRedis(redisUrl: string): Promise<boolean> {
+  const client = new Redis(redisUrl, {
+    lazyConnect: true,
+    connectTimeout: 1000,
+    maxRetriesPerRequest: 0,
+  });
+  try {
+    await client.connect();
+    const res = await client.ping();
+    await client.quit();
+    return res === 'PONG';
+  } catch {
+    return false;
+  }
+}

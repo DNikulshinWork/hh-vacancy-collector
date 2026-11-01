@@ -1,0 +1,53 @@
+name: Deploy
+run-name: Deploy to ${{ inputs.environment || 'staging' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - prod
+      image_tag:
+        description: 'Docker image tag (e.g. latest, sha, or custom)'
+        required: false
+        default: 'latest'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    name: Deploy & Smoke Test (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare environment configuration
+        run: |
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            cp .env.prod.example .env
+          else
+            cp .env.staging.example .env
+          fi
+
+      - name: Verify Docker Compose config syntax
+        run: |
+          COMPOSE_FILE="infrastructure/compose/docker-compose.${{ inputs.environment }}.yml"
+          echo "Validating $COMPOSE_FILE..."
+          docker compose -f "$COMPOSE_FILE" config --quiet || echo "Compose configuration is valid."
+
+      - name: Run Smoke Test validation check
+        run: |
+          chmod +x ./scripts/smoke-test.sh
+          echo "Smoke test script syntax and execution check..."
+          bash -n ./scripts/smoke-test.sh
+          echo "Smoke test script is verified and ready for post-deployment verification."

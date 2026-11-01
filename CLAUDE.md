@@ -25,9 +25,8 @@
 - Sprint 2: Playwright scraper, BullMQ worker, dedupe, CRUD, e2e тесты,
   схемы и API endpoints, fixtures, unit tests, CI workflow с service containers.
 
-## Осталось
-- Sprint 3: web UI (список, фильтры, статусы, экспорт).
-- Sprint 4: GHCR-образы, деплой на VPS, поддомен, smoke-тест.
+- Sprint 3: web UI (Next.js 15, dashboard, вакансии, фильтры, scrape-runs, экспорт CSV/PDF).
+- Sprint 4: GHCR-образы, docker-compose.staging.yml, docker-compose.prod.yml, Nginx SSL reverse-proxy, healthchecks, smoke-test.sh, CI/CD deploy pipeline, документация deployment и monitoring.
 
 ## Нюансы
 - Спецификация — источник истины. Неясность → вопрос, не гипотеза.

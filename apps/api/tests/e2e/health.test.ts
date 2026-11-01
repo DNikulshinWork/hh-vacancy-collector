@@ -26,6 +26,10 @@ describe('GET /health', () => {
     expect(res.body).toMatchObject({
       status: 'ok',
       service: 'api',
+      checks: {
+        database: 'ok',
+        redis: 'ok',
+      },
     });
     expect(typeof res.body.uptime).toBe('number');
   });

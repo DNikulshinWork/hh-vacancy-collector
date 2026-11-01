@@ -5,6 +5,7 @@ WORKDIR /app
 FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @repo/db generate
 RUN pnpm turbo run build --filter=@repo/worker...
 
 FROM node:20-alpine AS runtime
@@ -17,4 +18,7 @@ COPY --from=build /app/apps/worker/dist ./apps/worker/dist
 COPY --from=build /app/apps/worker/package.json ./apps/worker/package.json
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/node_modules ./node_modules
+EXPOSE 3002
+HEALTHCHECK --interval=15s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3002/health || exit 1
 CMD ["node", "apps/worker/dist/app/main.js"]
