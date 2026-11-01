@@ -8,7 +8,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @repo/db generate
 RUN pnpm turbo run build --filter=@repo/api...
 
-FROM node:20-alpine AS runtime
+FROM base AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apk add --no-cache openssl
