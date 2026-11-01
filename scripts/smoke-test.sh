@@ -86,6 +86,30 @@ else
   log_info "Worker HTTP health port not directly exposed outside docker network (skipped)"
 fi
 
+# Test 6: Nginx Reverse Proxy routing check
+PROXY_URL="${4:-http://localhost:80}"
+if curl -s -m 2 "$PROXY_URL/health" >/dev/null 2>&1; then
+  log_info "Testing Nginx Proxy routing: $PROXY_URL"
+
+  # Proxy to Web UI
+  HTTP_CODE=$(curl -s -o /tmp/proxy_web.json -w "%{http_code}" "$PROXY_URL/health")
+  if [ "$HTTP_CODE" -eq 200 ]; then
+    cat /tmp/proxy_web.json | grep -q '"service":"web"' && log_pass "Nginx -> Web routing passed" || log_fail "Nginx -> Web response mismatch"
+  else
+    log_fail "Nginx -> Web returned HTTP $HTTP_CODE"
+  fi
+
+  # Proxy to API
+  HTTP_CODE=$(curl -s -o /tmp/proxy_api.json -w "%{http_code}" "$PROXY_URL/api/health")
+  if [ "$HTTP_CODE" -eq 200 ]; then
+    cat /tmp/proxy_api.json | grep -q '"service":"api"' && log_pass "Nginx -> API routing passed" || log_fail "Nginx -> API response mismatch"
+  else
+    log_fail "Nginx -> API returned HTTP $HTTP_CODE"
+  fi
+else
+  log_info "Nginx Reverse Proxy on $PROXY_URL not reachable (skipped proxy test)"
+fi
+
 echo "=========================================="
 if [ "$FAILED" -eq 0 ]; then
   echo -e "${GREEN}ALL SMOKE TESTS PASSED!${NC}"

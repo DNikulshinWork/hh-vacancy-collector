@@ -1,0 +1,95 @@
+name: Live Containers & Smoke Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke-containers:
+    name: Build Containers, Run Stack & Execute Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @repo/db generate
+
+      - name: Prepare Staging Environment Variables
+        run: cp .env.staging.example .env
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Start Live Container Stack
+        run: |
+          docker compose -f infrastructure/compose/docker-compose.staging.yml up -d --build
+
+      - name: Wait for Containers to become Healthy
+        run: |
+          echo "Waiting for services (postgres, redis, api, worker, web, nginx)..."
+          SERVICES=("postgres" "redis" "api" "worker" "web" "nginx")
+          MAX_ATTEMPTS=30
+          
+          for svc in "${SERVICES[@]}"; do
+            echo "Checking health for $svc..."
+            ATTEMPTS=0
+            while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+              CONTAINER_ID=$(docker compose -f infrastructure/compose/docker-compose.staging.yml ps -q "$svc" || true)
+              if [ -n "$CONTAINER_ID" ]; then
+                STATUS=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$CONTAINER_ID" 2>/dev/null || echo "starting")
+                if [ "$STATUS" = "healthy" ] || [ "$STATUS" = "running" ]; then
+                  echo "Service $svc is $STATUS!"
+                  break
+                fi
+              fi
+              echo "Waiting for $svc (current: ${STATUS:-unknown}, attempt $ATTEMPTS/$MAX_ATTEMPTS)..."
+              sleep 3
+              ATTEMPTS=$((ATTEMPTS + 1))
+            done
+
+            if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
+              echo "Timeout waiting for service $svc to become healthy"
+              docker compose -f infrastructure/compose/docker-compose.staging.yml logs "$svc"
+              exit 1
+            fi
+          done
+
+      - name: Push Database Schema into Live Postgres
+        run: |
+          echo "Applying schema via api container..."
+          docker compose -f infrastructure/compose/docker-compose.staging.yml exec -T api pnpm --filter @repo/db db:push
+
+      - name: Run Live Smoke Tests
+        run: |
+          chmod +x ./scripts/smoke-test.sh
+          echo "Executing smoke tests against live running containers..."
+          ./scripts/smoke-test.sh http://localhost:3001 http://localhost:3000 http://localhost:3002 http://localhost:80
+
+      - name: Dump Container Logs on Failure
+        if: failure()
+        run: |
+          echo "=== DUMPING ALL CONTAINER LOGS ==="
+          docker compose -f infrastructure/compose/docker-compose.staging.yml logs --tail=100
+
+      - name: Stop and Cleanup Containers
+        if: always()
+        run: |
+          docker compose -f infrastructure/compose/docker-compose.staging.yml down -v
