@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
+import { AppLink } from '@/components/app-link';
 import { api, type ScrapeRun } from '@/lib/api';
 import { ScrapeRunStatus } from '@/components/scrape-run-status';
 import { ExportButtons } from '@/components/export-buttons';
@@ -71,12 +71,12 @@ export default function ScrapeRunsPage() {
             </svg>
             Обновить
           </button>
-          <Link
+          <AppLink
             href="/filters"
             className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
           >
             + Запустить сбор
-          </Link>
+          </AppLink>
         </div>
       </div>
 
@@ -117,12 +117,12 @@ export default function ScrapeRunsPage() {
                 runs.map((run) => (
                   <tr key={run.id} className="hover:bg-gray-50/80 transition">
                     <td className="px-5 py-3.5 font-mono">
-                      <Link
+                      <AppLink
                         href={`/scrape-runs/${run.id}`}
                         className="font-bold text-blue-600 hover:underline"
                       >
                         {run.id.slice(0, 8)}...
-                      </Link>
+                      </AppLink>
                     </td>
                     <td className="px-5 py-3.5">
                       <ScrapeRunStatus status={run.status} />

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { api, type ScrapeRun, type FilterConfig, type Vacancy } from '@/lib/api';
+import { AppLink } from '@/components/app-link';
 import { ScrapeRunStatus } from '@/components/scrape-run-status';
 import { ExportButtons } from '@/components/export-buttons';
 
@@ -52,18 +52,18 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
+          <AppLink
             href="/filters"
             className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition shadow-sm"
           >
             + Новый фильтр
-          </Link>
-          <Link
+          </AppLink>
+          <AppLink
             href="/vacancies"
             className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-semibold hover:bg-gray-50 transition"
           >
             К вакансиям →
-          </Link>
+          </AppLink>
         </div>
       </div>
 
@@ -115,9 +115,9 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-bold text-sm text-gray-900">Последние запуски сбора</h3>
-            <Link href="/scrape-runs" className="text-xs font-semibold text-blue-600 hover:underline">
+            <AppLink href="/scrape-runs" className="text-xs font-semibold text-blue-600 hover:underline">
               Все запуски →
-            </Link>
+            </AppLink>
           </div>
 
           <div className="divide-y divide-gray-100 flex-1">
@@ -130,9 +130,9 @@ export default function DashboardPage() {
                 <div key={run.id} className="p-4 hover:bg-gray-50 flex items-center justify-between gap-3 text-xs">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Link href={`/scrape-runs/${run.id}`} className="font-mono font-bold text-gray-900 hover:text-blue-600">
+                      <AppLink href={`/scrape-runs/${run.id}`} className="font-mono font-bold text-gray-900 hover:text-blue-600">
                         #{run.id.slice(0, 8)}
-                      </Link>
+                      </AppLink>
                       <ScrapeRunStatus status={run.status} />
                     </div>
                     <div className="text-gray-500 text-[11px]">
@@ -153,9 +153,9 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-bold text-sm text-gray-900">Свежие вакансии</h3>
-            <Link href="/vacancies" className="text-xs font-semibold text-blue-600 hover:underline">
+            <AppLink href="/vacancies" className="text-xs font-semibold text-blue-600 hover:underline">
               Все вакансии →
-            </Link>
+            </AppLink>
           </div>
 
           <div className="divide-y divide-gray-100 flex-1">
