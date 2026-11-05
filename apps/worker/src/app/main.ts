@@ -23,6 +23,7 @@ async function main(): Promise<void> {
   const processor = createScrapeProcessor({
     baseUrl: 'https://hh.ru',
     headless: env.SCRAPER_HEADLESS,
+    proxy: env.SCRAPER_PROXY ?? null,
     lock,
   });
 

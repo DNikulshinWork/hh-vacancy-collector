@@ -11,6 +11,7 @@ export interface ScrapeProcessorDeps {
   baseUrl: string;
   headless: boolean;
   lock: LockProvider;
+  proxy?: string | null;
   browserDeps?: BrowserDeps;
 }
 
@@ -59,7 +60,11 @@ export function createScrapeProcessor(
           timeouts: scrapeRun.scraperConfig.timeouts,
           paginationLimits: scrapeRun.scraperConfig.paginationLimits,
         },
-        { headless: deps.headless, deps: deps.browserDeps },
+        {
+          headless: deps.headless,
+          proxy: deps.proxy ?? null,
+          deps: deps.browserDeps,
+        },
       );
 
       const { created, skipped } = await dedupeAndSave(result.vacancies, deps.lock);

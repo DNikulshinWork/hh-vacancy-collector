@@ -8,8 +8,13 @@ import {
 import { buildSearchUrl } from './normalize.js';
 
 export interface BrowserDeps {
-  launch?: () => Promise<Browser>;
+  launch?: (opts: BrowserLaunchOptions) => Promise<Browser>;
   fetchPage?: () => Promise<string>;
+}
+
+export interface BrowserLaunchOptions {
+  headless: boolean;
+  proxy?: string | null;
 }
 
 export interface ScrapeResult {
@@ -17,14 +22,23 @@ export interface ScrapeResult {
   pagesProcessed: number;
 }
 
-const defaultLaunch = async (headless: boolean): Promise<Browser> =>
-  chromium.launch({ headless });
+const defaultLaunch = async (opts: BrowserLaunchOptions): Promise<Browser> => {
+  // Прокси используется только когда явно задан через SCRAPER_PROXY (например,
+  // на dev-машине за VPN). По умолчанию — прямой доступ: Chromium на Linux
+  // подхватывает HTTP(S)_PROXY из окружения, а hh.ru блокирует VPN-адреса
+  // (отдаёт страницу /vpncheeck вместо списка вакансий). Поэтому если прокси
+  // не задан, принудительно отключаем прокси.
+  if (opts.proxy) {
+    return chromium.launch({ headless: opts.headless, proxy: { server: opts.proxy } });
+  }
+  return chromium.launch({ headless: opts.headless, args: ['--no-proxy-server'] });
+};
 
 export async function runBrowserScrape(
   baseUrl: string,
   filterConfig: { query: string; location: string | null },
   scraperConfig: ScraperConfigData,
-  opts: { headless?: boolean; deps?: BrowserDeps } = {},
+  opts: { headless?: boolean; proxy?: string | null; deps?: BrowserDeps } = {},
 ): Promise<ScrapeResult> {
   const { selectors, timeouts, paginationLimits } = parseScraperConfig(scraperConfig);
 
@@ -43,7 +57,7 @@ export async function runBrowserScrape(
   const launch = opts.deps?.launch ?? defaultLaunch;
   const startUrl = buildSearchUrl(baseUrl, filterConfig.query, filterConfig.location);
 
-  const browser = await launch(opts.headless ?? true);
+  const browser = await launch({ headless: opts.headless ?? true, proxy: opts.proxy ?? null });
   const collected: ParsedVacancy[] = [];
   let pagesProcessed = 0;
 
