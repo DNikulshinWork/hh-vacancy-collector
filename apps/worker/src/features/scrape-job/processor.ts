@@ -84,7 +84,28 @@ export function createScrapeProcessor(
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      log.error({ scrapeRunId, err }, 'scrape run failed');
+      // Согласование статуса запуска с числом попыток BullMQ (Sprint 5):
+      // промежуточная попытка оставляет запуск в running (джоба уйдёт в retry),
+      // failed выставляется только на последней попытке.
+      const attempts = job.opts?.attempts ?? 1;
+      const attemptsMade = job.attemptsMade ?? 0;
+      const isLastAttempt = attemptsMade + 1 >= attempts;
+
+      if (!isLastAttempt) {
+        log.error(
+          { scrapeRunId, attempt: attemptsMade + 1, attempts, err: message },
+          'scrape run attempt failed, retry scheduled',
+        );
+
+        await prisma.scrapeRun.update({
+          where: { id: scrapeRunId },
+          data: { status: 'running' },
+        });
+
+        throw err;
+      }
+
+      log.error({ scrapeRunId, attempt: attemptsMade + 1, attempts, err }, 'scrape run failed');
 
       await prisma.scrapeRun.update({
         where: { id: scrapeRunId },

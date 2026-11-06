@@ -44,6 +44,7 @@ describe('domain routes', () => {
         WEB_PORT: 3000,
         SCRAPER_HEADLESS: true,
         SCRAPER_CONCURRENCY: 1,
+        SCRAPER_BASE_URL: 'https://hh.ru',
       },
       queueFactory: () => ({
         add: async () => ({ id: 'mock-job' }),

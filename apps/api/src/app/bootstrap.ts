@@ -5,6 +5,7 @@ import { loadEnv, type Env } from '@repo/config';
 import { createLogger } from '@repo/logger';
 import { registerHealthRoute } from '../features/health/index.js';
 import { registerDomainRoutes } from '../features/domain/index.js';
+import { registerMetrics } from './plugins/metrics.js';
 
 export interface BuildAppOptions {
   env?: Env;
@@ -39,6 +40,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   });
 
   registerHealthRoute(app);
+  registerMetrics(app);
   registerDomainRoutes(app, {
     redisUrl: env.REDIS_URL,
     queueFactory: options.queueFactory,

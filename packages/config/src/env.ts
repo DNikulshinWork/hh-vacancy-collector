@@ -15,6 +15,9 @@ const envSchema = z.object({
   WEB_PORT: z.coerce.number().default(3000),
   SCRAPER_HEADLESS: z.coerce.boolean().default(true),
   SCRAPER_CONCURRENCY: z.coerce.number().default(1),
+  // Базовый URL источника вакансий. Вынесен из хардкода (Sprint 5): в тестах и на
+  // стендах позволяет подменить hh.ru, в проде остаётся https://hh.ru.
+  SCRAPER_BASE_URL: z.string().url().default('https://hh.ru'),
   // HTTP(S)-прокси для скрапера (напр. для dev-машины за VPN). Не задано/пусто —
   // прямой доступ. hh.ru блокирует VPN-диапазоны (страница /vpncheeck вместо
   // списка вакансий), поэтому в проде прокси оставлять пустым.

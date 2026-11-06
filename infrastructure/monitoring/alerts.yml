@@ -1,0 +1,56 @@
+# Правила алертинга (docs/monitoring.md §4).
+#
+# Доступные сейчас метрики:
+#   - up{job="api"|"worker"} — из prometheus.yml;
+#   - bullmq_jobs_completed_total / bullmq_jobs_failed_total / bullmq_jobs_active_total
+#     — worker, порт 3002 (apps/worker/src/app/metrics.ts);
+#   - http_requests_total / http_request_duration_seconds / hhvc_vacancies_total
+#     — api, порт 3001 (apps/api/src/app/plugins/metrics.ts).
+#
+# Правила 3 и 4 перенесены из документации как есть, но пока находятся в состоянии
+# «no data»: bullmq_jobs_waiting_total и метрики диска (node_filesystem_*) в этом
+# спринте не экспортируются — см. «Открытые вопросы» в code-report.md.
+groups:
+  - name: hhvc
+    rules:
+      # 1. Критическая недоступность сервиса (docs/monitoring.md §4.1).
+      # В документации условие записано через probe_success blackbox-exporter;
+      # blackbox в этом спринте не разворачивается, поэтому используем up{},
+      # который покрывает тот же сценарий «таргет не отвечает».
+      - alert: HhvcServiceDown
+        expr: up{job=~"api|worker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Сервис {{ $labels.job }} недоступен"
+          description: "Таргет {{ $labels.instance }} ({{ $labels.job }}) не отвечает более 1 минуты."
+
+      # 2. Сбои скрапинга вакансий (docs/monitoring.md §4.2).
+      - alert: HhvcScrapeFailures
+        expr: rate(bullmq_jobs_failed_total[15m]) > 0.1
+        labels:
+          severity: warning
+        annotations:
+          summary: "Сбои задач скрапинга (>0.1/с за 15m)"
+          description: "Возможны изменения разметки hh.ru, капча или блокировка IP."
+
+      # 3. Накопление очереди задач (docs/monitoring.md §4.3).
+      - alert: HhvcQueueBacklog
+        expr: bullmq_jobs_waiting_total > 50
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Очередь задач накопилась (>50 в течение 10 минут)"
+          description: "Увеличьте количество реплик worker: docker compose up -d --scale worker=3."
+
+      # 4. Нехватка места на диске (docs/monitoring.md §4.4).
+      - alert: HhvcDiskSpaceLow
+        expr: node_filesystem_free_bytes / node_filesystem_size_bytes < 0.10
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Мало свободного места (<10%) на {{ $labels.instance }}"
+          description: "Освободите диск или расширьте volume; проверьте ротацию логов Docker."

@@ -15,6 +15,7 @@
 - `specs/` — спецификации спринтов
 - `docs/` — deployment, monitoring
 - `infrastructure/nginx/` — Nginx SSL reverse-proxy
+- `infrastructure/monitoring/` — Prometheus, Alertmanager (Telegram), Grafana provisioning
 - `.github/workflows/` — ci, deploy, smoke-containers
 - `scripts/`, `tooling/` — служебные скрипты и конфиги (назначение уточнить)
 
@@ -40,6 +41,17 @@
 
 - Sprint 3: web UI (Next.js 15, dashboard, вакансии, фильтры, scrape-runs, экспорт CSV/PDF).
 - Sprint 4: GHCR-образы, docker-compose.staging.yml, docker-compose.prod.yml, Nginx SSL reverse-proxy, healthchecks, smoke-test.sh, CI/CD deploy pipeline, документация deployment и monitoring.
+- Sprint 5 (наблюдаемость + устойчивость очереди): `specs/sprint-5.md`;
+  `SCRAPER_BASE_URL` из env (`packages/config`, worker); retry-политика BullMQ
+  (`attempts: 3`, exponential backoff 10 c, removeOn* в `packages/queue`); статус
+  `ScrapeRun` меняется на `failed` только на последней попытке (processor);
+  `GET /metrics` в api (`apps/api/src/app/plugins/metrics.ts`) и в health-сервере
+  worker (`apps/worker/src/app/metrics.ts`, порт 3002); `infrastructure/monitoring/`
+  (prometheus + alerts + alertmanager → Telegram + grafana provisioning/дашборд);
+  сервисы `prometheus`/`alertmanager`/`grafana` в compose staging и prod; nginx
+  basic-auth на `/metrics` и `/metrics/worker`, `scripts/gen-htpasswd.sh`;
+  автообновление статуса запусков в web (5 c, без F5); документация monitoring и
+  `.env*.example`.
 - 2026-11-06 (инструменты): pi подключён к Polza AI (`~/.pi/agent/models.json`, 3 модели); установлены pi-mcp-adapter и pi-subagents; агенты `plan` и `review` в `~/.pi/agent/agents/`.
 - 2026-11-06: в `~/.pi/agent/settings.json` зафиксированы `defaultProvider` = `polza-ai`, `defaultModel` = `deepseek/deepseek-v4.1-flash`.
 - 2026-11-06: прогон проверен: `/run plan` → polza-ai/z-ai/glm-5.3 (~1 ₽ за 20k/3k токенов), `/run review` → polza-ai/z-ai/glm-5.3-flash (~0.1 ₽ за 17k/6k); `/subagents-models plan` подтверждает модель из конфига агента.
@@ -55,14 +67,21 @@
 
 ## Что осталось
 
+- Sprint 6: бэкапы PostgreSQL (pg_dump + ротация + проверка восстановления).
+- Тесты `apps/web` (нет тестового раннера в web — вне Sprint 5).
+- Метрика `bullmq_jobs_waiting_total` (нужна для алерта `HhvcQueueBacklog`) и
+  `node-exporter` для алерта по диску: правила в `alerts.yml` пока в состоянии «no data».
 - Подключить MCP-серверы (PostgreSQL, GitHub), если понадобятся.
 - После первых сессий сверить реальный расход в кабинете Polza и пересмотреть роли.
-- Следующий спринт после Sprint 4: уточнить и добавить сюда.
 
 ## Нюансы
 
 - Спецификация — источник истины. Неясность → вопрос, не гипотеза.
 - Селекторы Playwright — в ScraperConfig, не в коде.
+- Секреты мониторинга — только через env (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
+  `METRICS_USER`, `METRICS_PASSWORD`); `.htpasswd` в `.gitignore`, генерируется
+  `scripts/gen-htpasswd.sh`; `TELEGRAM_*` в git не хранятся (только плейсхолдеры
+  в `alertmanager.yml.tmpl`).
 - Живой hh.ru в CI не дёргаем.
 - Local first → Reuse second → Extract only when justified (ED §57).
 - Не создавать пустые архитектурные папки (ED §60.23).

@@ -1,4 +1,4 @@
-import { Queue, Worker, type Job, type Processor } from 'bullmq';
+import { Queue, Worker, type DefaultJobOptions, type Job, type Processor } from 'bullmq';
 import {
   Redis,
   type Redis as RedisInstance,
@@ -6,6 +6,18 @@ import {
 } from 'ioredis';
 
 export const SCRAPE_QUEUE_NAME = 'scrape';
+
+/**
+ * Единая retry-политика задач скрапинга (Sprint 5).
+ * attempts ≤ 3 и backoff ≥ 10 c ограничивают нагрузку на hh.ru при сбоях,
+ * removeOn* не дают очереди расти бесконечно.
+ */
+export const SCRAPE_JOB_DEFAULT_OPTIONS: DefaultJobOptions = {
+  attempts: 3,
+  backoff: { type: 'exponential', delay: 10_000 },
+  removeOnComplete: { count: 100 },
+  removeOnFail: { count: 500 },
+};
 
 export interface ScrapeJobData {
   scrapeRunId: string;
@@ -25,6 +37,7 @@ function redisConnection(redisUrl: string): RedisInstance {
 export function createScrapeQueue(redisUrl: string): Queue<ScrapeJobData> {
   return new Queue<ScrapeJobData>(SCRAPE_QUEUE_NAME, {
     connection: redisConnection(redisUrl),
+    defaultJobOptions: SCRAPE_JOB_DEFAULT_OPTIONS,
   });
 }
 

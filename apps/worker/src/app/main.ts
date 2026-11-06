@@ -4,6 +4,7 @@ import { createLogger } from '@repo/logger';
 import { createScrapeWorker } from '@repo/queue';
 import { createScrapeProcessor } from '../features/scrape-job/index.js';
 import type { LockProvider } from '../services/vacancies.js';
+import { attachWorkerMetrics, createWorkerMetrics, handleMetricsRequest } from './metrics.js';
 
 const env = loadEnv();
 const log = createLogger('worker');
@@ -21,13 +22,16 @@ async function main(): Promise<void> {
   };
 
   const processor = createScrapeProcessor({
-    baseUrl: 'https://hh.ru',
+    baseUrl: env.SCRAPER_BASE_URL,
     headless: env.SCRAPER_HEADLESS,
     proxy: env.SCRAPER_PROXY ?? null,
     lock,
   });
 
   const worker = createScrapeWorker(env.REDIS_URL, processor, env.SCRAPER_CONCURRENCY);
+
+  const metrics = createWorkerMetrics();
+  attachWorkerMetrics(worker, metrics);
 
   worker.on('ready', () => log.info('scrape worker ready'));
   worker.on('failed', (job, err) =>
@@ -37,13 +41,25 @@ async function main(): Promise<void> {
 
   const healthPort = Number(process.env.WORKER_HEALTH_PORT || 3002);
   const healthServer = (await import('node:http')).createServer((req, res) => {
-    if (req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', service: 'worker', uptime: process.uptime() }));
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
+    void handleMetricsRequest(req, res, metrics)
+      .then((handled) => {
+        if (handled) return;
+
+        if (req.url === '/health') {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'ok', service: 'worker', uptime: process.uptime() }));
+        } else {
+          res.writeHead(404);
+          res.end();
+        }
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'worker metrics request failed');
+        if (!res.headersSent) {
+          res.writeHead(500);
+        }
+        res.end();
+      });
   });
 
   healthServer.listen(healthPort, '0.0.0.0', () => {
