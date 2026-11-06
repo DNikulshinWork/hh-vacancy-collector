@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { AppLink } from '@/components/app-link';
+import Link from 'next/link';
 import './globals.css';
 
 export const metadata = {
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <AppLink href="/dashboard" className="flex items-center gap-2.5">
+              <Link href="/dashboard" className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">
                   HH
                 </div>
@@ -25,33 +25,33 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </span>
                   <span className="text-[10px] text-gray-500 font-mono mt-0.5">Playwright & BullMQ</span>
                 </div>
-              </AppLink>
+              </Link>
 
               <nav className="hidden md:flex items-center gap-1">
-                <AppLink
+                <Link
                   href="/dashboard"
                   className="px-3 py-2 rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition"
                 >
                   Дашборд
-                </AppLink>
-                <AppLink
+                </Link>
+                <Link
                   href="/vacancies"
                   className="px-3 py-2 rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition"
                 >
                   Вакансии
-                </AppLink>
-                <AppLink
+                </Link>
+                <Link
                   href="/filters"
                   className="px-3 py-2 rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition"
                 >
                   Фильтры поиска
-                </AppLink>
-                <AppLink
+                </Link>
+                <Link
                   href="/scrape-runs"
                   className="px-3 py-2 rounded-lg text-xs font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition"
                 >
                   Запуски сбора
-                </AppLink>
+                </Link>
               </nav>
             </div>
 
@@ -65,10 +65,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
           {/* Mobile subnav */}
           <div className="md:hidden flex items-center justify-around border-t border-gray-100 px-2 py-1.5 text-xs font-semibold text-gray-600">
-            <AppLink href="/dashboard" className="px-2 py-1 hover:text-blue-600">Дашборд</AppLink>
-            <AppLink href="/vacancies" className="px-2 py-1 hover:text-blue-600">Вакансии</AppLink>
-            <AppLink href="/filters" className="px-2 py-1 hover:text-blue-600">Фильтры</AppLink>
-            <AppLink href="/scrape-runs" className="px-2 py-1 hover:text-blue-600">Запуски</AppLink>
+            <Link href="/dashboard" className="px-2 py-1 hover:text-blue-600">Дашборд</Link>
+            <Link href="/vacancies" className="px-2 py-1 hover:text-blue-600">Вакансии</Link>
+            <Link href="/filters" className="px-2 py-1 hover:text-blue-600">Фильтры</Link>
+            <Link href="/scrape-runs" className="px-2 py-1 hover:text-blue-600">Запуски</Link>
           </div>
         </header>
 

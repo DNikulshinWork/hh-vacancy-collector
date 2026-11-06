@@ -76,6 +76,9 @@ export interface ScrapeRunsResponse {
   pagination: VacancyPagination;
 }
 
+// Базовый URL API. Задаётся только через NEXT_PUBLIC_API_URL: dev через
+// code-server — /proxy/3001 (префикс срезается прокси), прод — /api (nginx).
+// basePath web-приложения к API не применяется: это другой префикс/хост.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {

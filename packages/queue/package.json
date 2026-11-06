@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run tests/unit"
   },
   "dependencies": {
     "bullmq": "^5.34.0",
@@ -25,6 +26,7 @@
     "@repo/tsconfig": "workspace:*",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2",
-    "@repo/eslint-config": "workspace:*"
+    "@repo/eslint-config": "workspace:*",
+    "vitest": "^2.1.8"
   }
 }

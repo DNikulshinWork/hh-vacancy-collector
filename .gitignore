@@ -10,3 +10,6 @@ coverage/
 .DS_Store
 packages/*/generated/
 .env*.backup
+
+# .htpasswd для basic-auth на /metrics (генерируется scripts/gen-htpasswd.sh)
+infrastructure/nginx/htpasswd/

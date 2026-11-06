@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AppLink } from '@/components/app-link';
+import Link from 'next/link';
 import { api, type ScrapeRun } from '@/lib/api';
 import { ScrapeRunStatus } from '@/components/scrape-run-status';
 import { ExportButtons } from '@/components/export-buttons';
+
+/** Интервал автообновления незавершённых запусков (Sprint 5). */
+const ACTIVE_RUN_REFRESH_MS = 5000;
 
 export default function ScrapeRunsPage() {
   const [runs, setRuns] = useState<ScrapeRun[]>([]);
@@ -15,23 +18,40 @@ export default function ScrapeRunsPage() {
   const [limit] = useState(15);
   const [total, setTotal] = useState(0);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await api.getScrapeRuns(page, limit);
-      setRuns(res.runs || []);
-      setTotal(res.pagination?.total || 0);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить запуски сбора');
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit]);
+  const loadData = useCallback(
+    async (options?: { silent?: boolean }) => {
+      try {
+        // При автообновлении не показываем спиннер: таблица остаётся на месте.
+        if (!options?.silent) setLoading(true);
+        setError(null);
+        const res = await api.getScrapeRuns(page, limit);
+        setRuns(res.runs || []);
+        setTotal(res.pagination?.total || 0);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Не удалось загрузить запуски сбора');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, limit],
+  );
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Автообновление статусов без F5: только пока есть незавершённые запуски.
+  const hasActiveRuns = runs.some((run) => run.status === 'pending' || run.status === 'running');
+
+  useEffect(() => {
+    if (!hasActiveRuns) return;
+
+    const timer = setInterval(() => {
+      void loadData({ silent: true });
+    }, ACTIVE_RUN_REFRESH_MS);
+
+    return () => clearInterval(timer);
+  }, [hasActiveRuns, loadData]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -63,7 +83,7 @@ export default function ScrapeRunsPage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={loadData}
+            onClick={() => void loadData()}
             className="px-3.5 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-semibold hover:bg-gray-50 transition flex items-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,12 +91,12 @@ export default function ScrapeRunsPage() {
             </svg>
             Обновить
           </button>
-          <AppLink
+          <Link
             href="/filters"
             className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
           >
             + Запустить сбор
-          </AppLink>
+          </Link>
         </div>
       </div>
 
@@ -117,12 +137,12 @@ export default function ScrapeRunsPage() {
                 runs.map((run) => (
                   <tr key={run.id} className="hover:bg-gray-50/80 transition">
                     <td className="px-5 py-3.5 font-mono">
-                      <AppLink
+                      <Link
                         href={`/scrape-runs/${run.id}`}
                         className="font-bold text-blue-600 hover:underline"
                       >
                         {run.id.slice(0, 8)}...
-                      </AppLink>
+                      </Link>
                     </td>
                     <td className="px-5 py-3.5">
                       <ScrapeRunStatus status={run.status} />

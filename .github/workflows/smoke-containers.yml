@@ -12,6 +12,14 @@ jobs:
     name: Build Containers, Run Stack & Execute Smoke Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Обязательные для staging-compose переменные (compose ругается
+    # `required variable ... is missing a value`): только плейсхолдеры для CI.
+    # `GRAFANA_ADMIN_PASSWORD` обязателен в staging; `TELEGRAM_*` — чтобы
+    # alertmanager стартовал, а не падал с ошибкой про пустые секреты.
+    env:
+      GRAFANA_ADMIN_PASSWORD: ci_placeholder
+      TELEGRAM_BOT_TOKEN: ci_placeholder
+      TELEGRAM_CHAT_ID: "-1001234567890"
 
     steps:
       - name: Checkout repository
@@ -47,7 +55,7 @@ jobs:
           echo "Waiting for services (postgres, redis, api, worker, web, nginx)..."
           SERVICES=("postgres" "redis" "api" "worker" "web" "nginx")
           MAX_ATTEMPTS=30
-          
+
           for svc in "${SERVICES[@]}"; do
             echo "Checking health for $svc..."
             ATTEMPTS=0

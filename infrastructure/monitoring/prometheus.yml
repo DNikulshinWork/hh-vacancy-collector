@@ -1,0 +1,31 @@
+# Prometheus для hh-vacancy-collector (Sprint 5).
+# Скрейп идёт по внутренней сети compose, без basic-auth: basic-auth настроен
+# только на внешнем периметре (nginx), см. infrastructure/nginx/conf.d/app.conf.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    service: hh-vacancy-collector
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:3001"]
+
+  - job_name: worker
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["worker:3002"]
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

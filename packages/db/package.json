@@ -16,6 +16,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run tests/unit",
     "generate": "prisma generate",
     "db:push": "prisma db push --skip-generate",
     "db:seed": "prisma db seed"
@@ -33,6 +34,7 @@
     "dotenv": "^16.4.7",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
     "@repo/eslint-config": "workspace:*"
   }
 }

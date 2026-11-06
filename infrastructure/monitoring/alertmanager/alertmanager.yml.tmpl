@@ -1,0 +1,33 @@
+# Шаблон конфигурации Alertmanager (Sprint 5).
+#
+# Это НЕ готовый конфиг: плейсхолдеры __TELEGRAM_BOT_TOKEN__ и __TELEGRAM_CHAT_ID__
+# подставляются из env при старте контейнера (см. сервис alertmanager в
+# infrastructure/compose/docker-compose.staging.yml). Значения секретов в
+# репозитории не хранятся: только $TELEGRAM_BOT_TOKEN и $TELEGRAM_CHAT_ID.
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: telegram
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers:
+        - severity="critical"
+      receiver: telegram
+      repeat_interval: 1h
+
+receivers:
+  - name: telegram
+    telegram_configs:
+      - bot_token: '__TELEGRAM_BOT_TOKEN__'
+        chat_id: __TELEGRAM_CHAT_ID__
+        send_resolved: true
+        parse_mode: HTML
+        message: |
+          {{ if eq .Status "firing" }}🔥 FIRING{{ else }}✅ RESOLVED{{ end }}: {{ .CommonLabels.alertname }}
+          {{ range .Alerts }}• {{ .Annotations.summary }}
+            {{ .Annotations.description }}
+          {{ end }}

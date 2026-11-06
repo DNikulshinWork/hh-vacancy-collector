@@ -9,7 +9,11 @@ services:
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-hhvc} -d ${POSTGRES_DB:-hhvc}']
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-hhvc} -d ${POSTGRES_DB:-hhvc}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -17,7 +21,7 @@ services:
       driver: json-file
       options:
         max-size: 50m
-        max-file: '3'
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -25,7 +29,7 @@ services:
     volumes:
       - redisdata_prod:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,7 +37,7 @@ services:
       driver: json-file
       options:
         max-size: 20m
-        max-file: '3'
+        max-file: "3"
 
   api:
     image: ${API_IMAGE:-ghcr.io/dnikulshinwork/hh-vacancy-collector/api}:${IMAGE_TAG:-latest}
@@ -53,7 +57,15 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3001/health']
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:3001/health",
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -61,7 +73,7 @@ services:
       driver: json-file
       options:
         max-size: 50m
-        max-file: '5'
+        max-file: "5"
 
   worker:
     image: ${WORKER_IMAGE:-ghcr.io/dnikulshinwork/hh-vacancy-collector/worker}:${IMAGE_TAG:-latest}
@@ -73,8 +85,10 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-hhvc}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-hhvc}
       REDIS_URL: redis://redis:6379
-      SCRAPER_HEADLESS: 'true'
+      SCRAPER_HEADLESS: "true"
       SCRAPER_CONCURRENCY: ${SCRAPER_CONCURRENCY:-2}
+      SCRAPER_BASE_URL: ${SCRAPER_BASE_URL:-https://hh.ru}
+      SCRAPER_PROXY: ${SCRAPER_PROXY:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       WORKER_HEALTH_PORT: 3002
     depends_on:
@@ -83,7 +97,15 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3002/health']
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:3002/health",
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -91,7 +113,7 @@ services:
       driver: json-file
       options:
         max-size: 50m
-        max-file: '5'
+        max-file: "5"
 
   web:
     image: ${WEB_IMAGE:-ghcr.io/dnikulshinwork/hh-vacancy-collector/web}:${IMAGE_TAG:-latest}
@@ -108,7 +130,15 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3000/health']
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:3000/health",
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -116,17 +146,18 @@ services:
       driver: json-file
       options:
         max-size: 30m
-        max-file: '3'
+        max-file: "3"
 
   nginx:
     image: nginx:1.27-alpine
     restart: always
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../nginx/htpasswd:/etc/nginx/htpasswd:ro
       - certbot_prod_etc:/etc/letsencrypt
       - certbot_prod_www:/var/www/certbot
     depends_on:
@@ -134,14 +165,100 @@ services:
         condition: service_healthy
       web:
         condition: service_healthy
+      # upstream'ы worker/grafana резолвятся при старте nginx: без этих
+      # зависимостей — «host not found in upstream» на первом `up`.
+      # healthcheck'ов у worker/grafana нет → service_started.
+      worker:
+        condition: service_started
+      grafana:
+        condition: service_started
     logging:
       driver: json-file
       options:
         max-size: 30m
-        max-file: '3'
+        max-file: "3"
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: always
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_prod_data:/prometheus
+    depends_on:
+      - api
+      - worker
+      - alertmanager
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: always
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:?TELEGRAM_CHAT_ID is required}
+    volumes:
+      - ../monitoring/alertmanager:/etc/alertmanager/templates:ro
+      - alertmanager_prod_data:/alertmanager
+    # Секреты подставляются в шаблон из env при старте: значений в git нет.
+    # Пустые значения — внятная ошибка вместо молча неработающего alertmanager.
+    # Спецсимволы sed (`\`, `&`, `|`) в значениях экранируются функцией escape_sed.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if [ -z "$${TELEGRAM_BOT_TOKEN:-}" ] || [ -z "$${TELEGRAM_CHAT_ID:-}" ]; then
+          echo "error: TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID обязательны для Alertmanager (см. docs/monitoring.md §6)" >&2
+          exit 1
+        fi
+        escape_sed() { printf '%s' "$$1" | sed -e 's/[\\&|]/\\&/g'; }
+        token="$$(escape_sed "$$TELEGRAM_BOT_TOKEN")"
+        chat="$$(escape_sed "$$TELEGRAM_CHAT_ID")"
+        sed -e "s|__TELEGRAM_BOT_TOKEN__|$$token|g" \
+            -e "s|__TELEGRAM_CHAT_ID__|$$chat|g" \
+            /etc/alertmanager/templates/alertmanager.yml.tmpl > /tmp/alertmanager.yml
+        exec /bin/alertmanager --config.file=/tmp/alertmanager.yml --storage.path=/alertmanager
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  # Grafana наружу не публикуется: доступ только через nginx (/grafana/).
+  grafana:
+    image: grafana/grafana:11.3.1
+    restart: always
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-https://localhost/grafana/}
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_prod_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
 
 volumes:
   pgdata_prod:
   redisdata_prod:
   certbot_prod_etc:
   certbot_prod_www:
+  prometheus_prod_data:
+  alertmanager_prod_data:
+  grafana_prod_data:
