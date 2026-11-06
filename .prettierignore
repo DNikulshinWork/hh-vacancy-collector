@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+
+# pnpm владеет форматом lock-файла; prettier ломает его (кавычки, пустые строки)
+pnpm-lock.yaml

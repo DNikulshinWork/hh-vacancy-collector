@@ -1,7 +1,9 @@
+import path from 'node:path';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: ['./src/**/*.{ts,tsx}'],
+  // Абсолютный путь к src — независимо от CWD (который в монорепо = корень).
+  content: [path.join(__dirname, 'src', '**', '*.{ts,tsx}')],
   theme: {
     extend: {},
   },

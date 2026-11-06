@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { p } from '@/lib/base-path';
 
 export default function RootPage() {
-  const router = useRouter();
-
   useEffect(() => {
-    router.replace('/dashboard');
-  }, [router]);
+    // Полный переход через прокси (не router.replace: без basePath роутер
+    // не знает про префикс и отдал бы 404 при client-side навигации).
+    window.location.assign(p('/dashboard'));
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
