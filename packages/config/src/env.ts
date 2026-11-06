@@ -18,7 +18,12 @@ const envSchema = z.object({
   // HTTP(S)-прокси для скрапера (напр. для dev-машины за VPN). Не задано/пусто —
   // прямой доступ. hh.ru блокирует VPN-диапазоны (страница /vpncheeck вместо
   // списка вакансий), поэтому в проде прокси оставлять пустым.
-  SCRAPER_PROXY: z.string().url().optional(),
+  // Пустая строка трактуется как «не задано»: в .env.example значение
+  // оставлено пустым, и z.string().url() иначе отверг бы его.
+  SCRAPER_PROXY: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().url().optional(),
+  ),
 });
 
 export type Env = z.infer<typeof envSchema>;
