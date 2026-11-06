@@ -17,7 +17,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate"
+    "db:push": "prisma db push --skip-generate",
+    "db:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -26,6 +30,8 @@
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",
     "@types/node": "^22.10.2",
+    "dotenv": "^16.4.7",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "@repo/eslint-config": "workspace:*"
   }
