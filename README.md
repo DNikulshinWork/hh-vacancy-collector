@@ -23,6 +23,8 @@ pnpm dev
 - API: http://localhost:3001/health
 - Web: http://localhost:3000/health
 
+Dev через code-server (`code.dnikulshin.ru/absproxy/3000`, префикс не срезается) — в `.env` задать `WEB_BASE_PATH=/absproxy/3000` и `NEXT_PUBLIC_API_URL=/proxy/3001`; в проде префикса нет, оба значения пустые/`/api`.
+
 ## API endpoints (Sprint 1 stubs)
 
 - `GET /health` — healthcheck

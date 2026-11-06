@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { AppLink } from '@/components/app-link';
+import Link from 'next/link';
 import { api, type ScrapeRun } from '@/lib/api';
 import { ScrapeRunStatus } from '@/components/scrape-run-status';
 import { ExportButtons } from '@/components/export-buttons';
@@ -51,7 +51,7 @@ export default function ScrapeRunDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-2 text-xs text-gray-500">
-        <AppLink href="/scrape-runs" className="hover:text-blue-600 transition">← Назад к списку запусков</AppLink>
+        <Link href="/scrape-runs" className="hover:text-blue-600 transition">← Назад к списку запусков</Link>
         <span>/</span>
         <span className="font-mono text-gray-700">#{id.slice(0, 8)}</span>
       </div>
