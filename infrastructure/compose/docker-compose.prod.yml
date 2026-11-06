@@ -75,6 +75,7 @@ services:
       REDIS_URL: redis://redis:6379
       SCRAPER_HEADLESS: 'true'
       SCRAPER_CONCURRENCY: ${SCRAPER_CONCURRENCY:-2}
+      SCRAPER_PROXY: ${SCRAPER_PROXY:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       WORKER_HEALTH_PORT: 3002
     depends_on:
